@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical"
+    android:padding="16dp"
+    tools:context=".YogaCourseFunctions">
+
+    <!-- Day of Week -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Day of Week"
+        android:textSize="16sp" />
+
+    <Spinner
+        android:id="@+id/spinner_day"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="48dp" />
+
+    <!-- Time -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Time"
+        android:textSize="16sp" />
+
+    <TimePicker
+        android:id="@+id/time_picker"
+        android:layout_width="370dp"
+        android:layout_height="162dp"
+        android:timePickerMode="spinner" />
+
+    <!-- Capacity -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Capacity"
+        android:textSize="16sp" />
+
+    <EditText
+        android:id="@+id/edit_capacity"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="e.g. 20"
+        android:inputType="number"
+        android:minHeight="48dp" />
+
+    <!-- Duration -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Duration (minutes)"
+        android:textSize="16sp" />
+
+    <EditText
+        android:id="@+id/edit_duration"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="e.g. 60"
+        android:inputType="number"
+        android:minHeight="48dp" />
+
+    <!-- Price -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Price"
+        android:textSize="16sp" />
+
+    <EditText
+        android:id="@+id/edit_price"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="e.g. 10.00"
+        android:inputType="numberDecimal"
+        android:minHeight="48dp" />
+
+    <!-- Type of Class -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Type of Class"
+        android:textSize="16sp" />
+
+    <Spinner
+        android:id="@+id/spinner_type"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="48dp" />
+
+    <!-- Description -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Description"
+        android:textSize="16sp" />
+
+    <EditText
+        android:id="@+id/edit_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Optional"
+        android:inputType="textMultiLine"
+        android:minHeight="80dp" />
+
+    <!-- Add Course Button -->
+
+    <!-- Back Button -->
+
+    <Button
+        android:id="@+id/AddCourseButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:minHeight="48dp"
+        android:onClick="onClickAddCourse"
+        android:text="Add Course" />
+
+    <Button
+        android:id="@+id/back_btn"
+        android:layout_width="363dp"
+        android:layout_height="57dp"
+        android:layout_margin="16dp"
+        android:background="@android:color/white"
+        android:elevation="8dp"
+        android:onClick="onClickBack"
+        android:text="&lt;"
+        android:textColor="@color/black"
+        android:textSize="32sp" />
+</LinearLayout>

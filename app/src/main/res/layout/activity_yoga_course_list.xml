@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/yoga_course_list_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".YogaCourseList">
+
+    <Button
+        android:id="@+id/buttonAddCourse"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginEnd="27dp"
+        android:layout_marginBottom="69dp"
+        android:background="@color/black"
+        android:onClick="onClickAdd"
+        android:text="Add Course"
+        android:textColor="@android:color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/fetch_course_btn"
+        app:layout_constraintTop_toBottomOf="@+id/courseListView" />
+
+    <ListView
+        android:id="@+id/courseListView"
+        android:layout_width="391dp"
+        android:layout_height="576dp"
+        android:layout_marginStart="22dp"
+        android:layout_marginTop="129dp"
+        android:layout_marginEnd="22dp"
+        android:layout_marginBottom="53dp"
+        android:divider="@android:color/darker_gray"
+        android:dividerHeight="1dp"
+        app:layout_constraintBottom_toTopOf="@+id/buttonAddCourse"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/courseback_btn"
+        android:layout_width="84dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="29dp"
+        android:layout_marginBottom="41dp"
+        android:background="@android:color/white"
+        android:elevation="8dp"
+        android:onClick="onClickBack"
+        android:text="&lt;"
+        android:textColor="@color/black"
+        android:textSize="32sp"
+        app:layout_constraintBottom_toTopOf="@+id/courseListView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="MissingConstraints" />
+
+    <Button
+        android:id="@+id/fetch_course_btn"
+        android:layout_width="153dp"
+        android:layout_height="65dp"
+        android:layout_marginStart="22dp"
+        android:layout_marginEnd="41dp"
+        android:layout_marginBottom="69dp"
+        android:text="refresh"
+        android:onClick="onClickRefresh"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/buttonAddCourse"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/courseListView"
+        app:layout_constraintVertical_bias="1.0" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

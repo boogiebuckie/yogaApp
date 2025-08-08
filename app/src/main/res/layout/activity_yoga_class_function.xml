@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/layout_class_function"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    tools:context=".YogaClassFunction">
+
+
+    <Button
+        android:id="@+id/back_btn"
+        android:layout_width="46dp"
+        android:layout_height="58dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="13dp"
+        android:layout_marginBottom="42dp"
+        android:background="@android:color/white"
+        android:elevation="8dp"
+        android:onClick="onClickBack"
+        android:text="&lt;"
+        android:textColor="@color/black"
+        android:textSize="32sp"
+        app:layout_constraintBottom_toTopOf="@+id/tv_course_id"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="MissingConstraints" />
+
+    <EditText
+        android:id="@+id/edit_comment"
+        android:layout_width="367dp"
+        android:layout_height="88dp"
+        android:layout_marginStart="9dp"
+        android:layout_marginEnd="9dp"
+        android:layout_marginBottom="25dp"
+        android:gravity="top"
+        android:hint="Enter comment"
+        android:inputType="textMultiLine"
+        app:layout_constraintBottom_toTopOf="@+id/addClass_btn"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_comment"
+        tools:ignore="MissingConstraints" />
+
+    <EditText
+        android:id="@+id/edit_teacher"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="9dp"
+        android:layout_marginEnd="9dp"
+        android:layout_marginBottom="16dp"
+        android:hint="Enter teacher"
+        android:inputType="textPersonName"
+        app:layout_constraintBottom_toTopOf="@+id/tv_comment"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_teacher"
+        tools:ignore="MissingConstraints,TouchTargetSizeCheck" />
+
+    <TextView
+        android:id="@+id/tv_teacher"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="9dp"
+        android:text="Teacher"
+        app:layout_constraintBottom_toTopOf="@+id/edit_teacher"
+        app:layout_constraintStart_toStartOf="@+id/edit_teacher"
+        app:layout_constraintTop_toBottomOf="@+id/date_picker"
+        tools:ignore="MissingConstraints" />
+
+    <TextView
+        android:id="@+id/tv_comment"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="Comments"
+        app:layout_constraintBottom_toTopOf="@+id/edit_comment"
+        app:layout_constraintStart_toStartOf="@+id/edit_comment"
+        app:layout_constraintTop_toBottomOf="@+id/edit_teacher"
+        tools:ignore="MissingConstraints" />
+
+    <Spinner
+        android:id="@+id/spinner_course"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="16dp"
+        android:minHeight="48dp"
+        app:layout_constraintBottom_toTopOf="@+id/tv_date"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_course_id"
+        tools:ignore="MissingConstraints" />
+
+    <TextView
+        android:id="@+id/tv_course_id"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:layout_marginBottom="8dp"
+        android:text="Course"
+        app:layout_constraintBottom_toTopOf="@+id/spinner_course"
+        app:layout_constraintStart_toStartOf="@+id/spinner_course"
+        app:layout_constraintTop_toBottomOf="@+id/back_btn"
+        tools:ignore="MissingConstraints" />
+
+    <DatePicker
+        android:id="@+id/date_picker"
+        android:layout_width="353dp"
+        android:layout_height="322dp"
+        android:layout_marginStart="13dp"
+        android:layout_marginEnd="13dp"
+        android:layout_marginBottom="14dp"
+        android:calendarViewShown="true"
+        android:spinnersShown="false"
+        app:layout_constraintBottom_toTopOf="@+id/tv_teacher"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_date"
+        tools:ignore="MissingConstraints" />
+
+    <!-- Teacher Input -->
+
+    <!-- Comment Label -->
+
+    <!-- Comment Input -->
+
+    <!-- Add Class Button -->
+
+    <TextView
+        android:id="@+id/tv_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="3dp"
+        android:layout_marginBottom="4dp"
+        android:text="Date"
+        app:layout_constraintBottom_toTopOf="@+id/date_picker"
+        app:layout_constraintStart_toStartOf="@+id/date_picker"
+        app:layout_constraintTop_toBottomOf="@+id/spinner_course"
+        tools:ignore="MissingConstraints" />
+
+    <Button
+        android:id="@+id/addClass_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="59dp"
+        android:text="Add Class"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.458"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/edit_comment"
+        tools:ignore="MissingConstraints" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

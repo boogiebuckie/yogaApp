@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="12dp"
+    android:background="?attr/selectableItemBackground">
+
+    <!-- Date and Time -->
+    <TextView
+        android:id="@+id/tv_search_date_time"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="2025-01-15 10:00"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:paddingBottom="4dp" />
+
+    <!-- Day of Week -->
+    <TextView
+        android:id="@+id/tv_search_day"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Monday"
+        android:textSize="14sp"
+        android:textColor="#666666"
+        android:paddingBottom="4dp" />
+
+    <!-- Teacher -->
+    <TextView
+        android:id="@+id/tv_search_teacher"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Teacher: Sarah Johnson"
+        android:paddingBottom="4dp" />
+
+    <!-- Comment -->
+    <TextView
+        android:id="@+id/tv_search_comment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Comment: Bring your own mat"
+        android:textColor="#666666" />
+
+</LinearLayout>
