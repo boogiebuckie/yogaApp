@@ -9,8 +9,8 @@
 
     <Button
         android:id="@+id/buttonAddCourse"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_width="88dp"
+        android:layout_height="42dp"
         android:layout_marginEnd="27dp"
         android:layout_marginBottom="69dp"
         android:background="@color/black"
@@ -24,11 +24,11 @@
 
     <ListView
         android:id="@+id/courseListView"
-        android:layout_width="391dp"
-        android:layout_height="576dp"
-        android:layout_marginStart="22dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="20dp"
         android:layout_marginTop="129dp"
-        android:layout_marginEnd="22dp"
+        android:layout_marginEnd="20dp"
         android:layout_marginBottom="53dp"
         android:divider="@android:color/darker_gray"
         android:dividerHeight="1dp"
@@ -39,8 +39,8 @@
 
     <Button
         android:id="@+id/courseback_btn"
-        android:layout_width="84dp"
-        android:layout_height="0dp"
+        android:layout_width="44dp"
+        android:layout_height="58dp"
         android:layout_marginStart="16dp"
         android:layout_marginTop="29dp"
         android:layout_marginBottom="41dp"
@@ -57,13 +57,13 @@
 
     <Button
         android:id="@+id/fetch_course_btn"
-        android:layout_width="153dp"
-        android:layout_height="65dp"
+        android:layout_width="108dp"
+        android:layout_height="47dp"
         android:layout_marginStart="22dp"
         android:layout_marginEnd="41dp"
         android:layout_marginBottom="69dp"
+        android:onClick="OnRefreshClick"
         android:text="refresh"
-        android:onClick="onClickRefresh"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/buttonAddCourse"
         app:layout_constraintStart_toStartOf="parent"

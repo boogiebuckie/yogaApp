@@ -61,8 +61,15 @@ public class YogaCourseList extends AppCompatActivity {
     // Inner class for custom adapter
     public class YogaCourseAdapter extends ArrayAdapter<YogaCourse> {
 
+        private final DatabaseHelper dbHelper;
+        private final FireBaseHelper firebaseHelper;
+        private final ArrayList<YogaCourse> courses;
+
         public YogaCourseAdapter(Context context, ArrayList<YogaCourse> courses) {
             super(context, 0, courses);
+            this.courses = courses;
+            this.dbHelper = new DatabaseHelper(context);
+            this.firebaseHelper = new FireBaseHelper(context);
         }
 
         @Override
@@ -91,10 +98,9 @@ public class YogaCourseList extends AppCompatActivity {
             ImageButton btnEdit = convertView.findViewById(R.id.btn_edit_course);
             ImageButton btnDelete = convertView.findViewById(R.id.btn_delete_course);
             Button btnSchedule = convertView.findViewById(R.id.btnSchedule);
-            // Edit course
+
             btnEdit.setOnClickListener(v -> {
                 Intent intent = new Intent(getContext(), YogaCourseFunctions.class);
-                // Pass course data with correct key names
                 intent.putExtra("course_id", course.getId());
                 intent.putExtra("day", course.getDayOfWeek());
                 intent.putExtra("time", course.getTime());
@@ -106,24 +112,75 @@ public class YogaCourseList extends AppCompatActivity {
                 getContext().startActivity(intent);
             });
 
-            // Delete course
             btnDelete.setOnClickListener(v -> {
-                dbHelper.deleteCourse(course.getId());
-                courseList.remove(position);
-                notifyDataSetChanged();
-                Toast.makeText(getContext(), "Deleted course: " + course.getTypeOfClass(), Toast.LENGTH_SHORT).show();
+                int courseId = course.getId();
+
+                // Get firebase key first
+                String firebaseKey = dbHelper.getFirebaseKeyById(courseId);
+
+                FireBaseHelper firebaseHelper = new FireBaseHelper(getContext());
+
+                if (firebaseKey != null && !firebaseKey.isEmpty() && firebaseHelper.isNetworkAvailable()) {
+                    // Delete on Firebase
+                    firebaseHelper.deleteCourseOnFirebase(firebaseKey, success -> {
+                        if (success) {
+                            // Delete locally after Firebase deletion
+                            dbHelper.deleteCourse(courseId);
+                            courseList.remove(position);
+                            notifyDataSetChanged();
+                            Toast.makeText(getContext(), "Deleted course remotely and locally", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(getContext(), "Failed to delete course on cloud", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                } else {
+                    // No firebase key or no network, delete locally only
+                    dbHelper.deleteCourse(courseId);
+                    courseList.remove(position);
+                    notifyDataSetChanged();
+                    Toast.makeText(getContext(), "Deleted course locally", Toast.LENGTH_SHORT).show();
+                }
             });
-            // adding schedule to class
+
             btnSchedule.setOnClickListener(v -> {
                 Context context = v.getContext();
                 Intent i = new Intent(context, YogaClassList.class);
-                i.putExtra("course_id", course.getId()); // Pass the course ID
+                i.putExtra("course_id", course.getId());
                 context.startActivity(i);
             });
+
             return convertView;
         }
     }
 
+
+    public void OnRefreshClick(View view) {
+        FireBaseHelper firebaseHelper = new FireBaseHelper(this);
+        if (firebaseHelper.isNetworkAvailable()) {
+            firebaseHelper.fetchCoursesFromFirebase(() -> {
+                // This runs after sync finished
+                runOnUiThread(() -> {
+                    Toast.makeText(this, "Courses synced from cloud", Toast.LENGTH_SHORT).show();
+                    // reload your course list adapter here
+                    reloadCourseList();
+                });
+            });
+        } else {
+            Toast.makeText(this, "No internet connection. Course saved locally.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void reloadCourseList() {
+        // 1. Get updated list from local database
+        ArrayList<YogaCourse> updatedCourses = dbHelper.getAllCourses();
+
+        // 2. Clear old data and add new data to your adapter's list
+        courseList.clear();
+        courseList.addAll(updatedCourses);
+
+        // 3. Tell adapter to refresh the UI
+        courseAdapter.notifyDataSetChanged();
+    }
     public void onClickBack(View view) {
         // Go back to the previous activity in the stack
         onBackPressed();

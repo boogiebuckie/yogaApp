@@ -11,8 +11,8 @@ import java.util.List;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
-    private static final String DATABASE_NAME = "YogaApp.db";  // Unified DB name
-    private static final int DATABASE_VERSION = 1;
+    private static final String DATABASE_NAME = "YogaApp.db";
+    private static final int DATABASE_VERSION = 2; // Increase version for upgrade
 
     // YogaCourse table and columns
     private static final String TABLE_COURSE = "yoga_courses";
@@ -25,13 +25,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COURSE_TYPE = "type";
     private static final String COURSE_DESCRIPTION = "description";
 
-    // YogaClass table and columns
+    // NEW: Firebase key column
+    private static final String COURSE_FIREBASE_KEY = "firebase_key";
+
+    // YogaClass table and columns (unchanged)
     private static final String TABLE_CLASS = "yoga_classes";
     private static final String CLASS_ID = "class_id";
-    private static final String CLASS_DATETIME = "dateTime";  // store as TEXT (ISO format recommended)
+    private static final String CLASS_DATETIME = "dateTime";
     private static final String CLASS_TEACHER = "teacher";
     private static final String CLASS_COMMENT = "comment";
-    private static final String CLASS_COURSE_ID = "course_id"; // FK to yoga_courses
+    private static final String CLASS_COURSE_ID = "course_id";
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -47,7 +50,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COURSE_DURATION + " INTEGER NOT NULL, " +
                 COURSE_PRICE + " REAL NOT NULL, " +
                 COURSE_TYPE + " TEXT NOT NULL, " +
-                COURSE_DESCRIPTION + " TEXT" +
+                COURSE_DESCRIPTION + " TEXT, " +
+                COURSE_FIREBASE_KEY + " TEXT" +  // new column here
                 ");";
 
         String createClassTable = "CREATE TABLE " + TABLE_CLASS + " (" +
@@ -63,15 +67,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(createClassTable);
     }
 
+    // Handle database upgrades
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_CLASS);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_COURSE);
-        onCreate(db);
+        if (oldVersion < 2) {
+            // Add firebase_key column without losing data
+            db.execSQL("ALTER TABLE " + TABLE_COURSE + " ADD COLUMN " + COURSE_FIREBASE_KEY + " TEXT;");
+        }
+        // Add further upgrades if needed
     }
 
-    // --- Course CRUD ---
-
+    // --- Modified insertCourse ---
     public long insertCourse(YogaCourse course) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -82,9 +88,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COURSE_PRICE, course.getPricePerClass());
         values.put(COURSE_TYPE, course.getTypeOfClass());
         values.put(COURSE_DESCRIPTION, course.getDescription());
+        values.put(COURSE_FIREBASE_KEY, course.getFirebaseKey()); // new
         return db.insert(TABLE_COURSE, null, values);
     }
 
+    // --- Modified updateCourse ---
     public int updateCourse(int id, YogaCourse course) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -95,14 +103,32 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COURSE_PRICE, course.getPricePerClass());
         values.put(COURSE_TYPE, course.getTypeOfClass());
         values.put(COURSE_DESCRIPTION, course.getDescription());
+        values.put(COURSE_FIREBASE_KEY, course.getFirebaseKey()); // new
         return db.update(TABLE_COURSE, values, COURSE_ID + " = ?", new String[]{String.valueOf(id)});
     }
 
-    public int deleteCourse(int id) {
+    // --- Add method to update Firebase key separately ---
+    public String getFirebaseKeyById(int courseId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_COURSE, new String[]{"firebase_key"}, COURSE_ID + " = ?", new String[]{String.valueOf(courseId)}, null, null, null);
+        String firebaseKey = null;
+        if (cursor.moveToFirst()) {
+            int index = cursor.getColumnIndex("firebase_key");
+            if (index != -1) {
+                firebaseKey = cursor.getString(index);
+            }
+        }
+        cursor.close();
+        return firebaseKey;
+    }
+    public int updateFirebaseKey(int courseId, String firebaseKey) {
         SQLiteDatabase db = this.getWritableDatabase();
-        return db.delete(TABLE_COURSE, COURSE_ID + " = ?", new String[]{String.valueOf(id)});
+        ContentValues values = new ContentValues();
+        values.put("firebase_key", firebaseKey);
+        return db.update(TABLE_COURSE, values, COURSE_ID + " = ?", new String[]{String.valueOf(courseId)});
     }
 
+    // --- Modified getAllCourses to load firebase key ---
     public ArrayList<YogaCourse> getAllCourses() {
         ArrayList<YogaCourse> courses = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
@@ -118,9 +144,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 double price = cursor.getDouble(cursor.getColumnIndexOrThrow(COURSE_PRICE));
                 String type = cursor.getString(cursor.getColumnIndexOrThrow(COURSE_TYPE));
                 String description = cursor.getString(cursor.getColumnIndexOrThrow(COURSE_DESCRIPTION));
+                String firebaseKey = null;
+                int firebaseKeyIndex = cursor.getColumnIndex(COURSE_FIREBASE_KEY);
+                if (firebaseKeyIndex != -1) {
+                    firebaseKey = cursor.getString(firebaseKeyIndex);
+                }
 
                 YogaCourse course = new YogaCourse(day, time, capacity, duration, price, type, description);
                 course.setId(id);
+                course.setFirebaseKey(firebaseKey); // set firebase key
                 courses.add(course);
             } while (cursor.moveToNext());
         }
@@ -360,5 +392,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         // Then delete all rows from yoga_courses
         db.delete(TABLE_COURSE, null, null);
         db.close();
+    }
+    public int deleteCourse(int id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        // Delete classes linked to this course
+        db.delete(TABLE_CLASS, CLASS_COURSE_ID + " = ?", new String[]{String.valueOf(id)});
+        // Delete course
+        return db.delete(TABLE_COURSE, COURSE_ID + " = ?", new String[]{String.valueOf(id)});
     }
 }

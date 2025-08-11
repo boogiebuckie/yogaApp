@@ -3,15 +3,19 @@ package com.example.yogaadminapp;
 import java.io.Serializable;
 
 public class YogaCourse implements Serializable {
+    private String firebaseKey;
     private int id;
-    private String dayOfWeek;       // e.g. "Monday"
-    private String time;            // e.g. "10:00"
-    private int capacity;           // number of people
-    private int duration;           // in minutes, e.g. 60
-    private double pricePerClass;   // e.g. 10.0 for £10
-    private String typeOfClass;     // e.g. "Flow Yoga", "Aerial Yoga"
-    private String description;     // optional
+    private String dayOfWeek;
+    private String time;
+    private int capacity;
+    private int duration;
+    private double pricePerClass;
+    private String typeOfClass;
+    private String description;
 
+    // No-argument constructor required by Firebase
+    public YogaCourse() {
+    }
 
 
     // Constructor with all required + optional fields
@@ -36,6 +40,11 @@ public class YogaCourse implements Serializable {
     public String getTypeOfClass() { return typeOfClass; }
     public String getDescription() { return description; }
 
+    public String getFirebaseKey() {
+        return firebaseKey;
+    }
+
+
     // Setters (optional but useful for frameworks or form editing)
     public void setDayOfWeek(String dayOfWeek) { this.dayOfWeek = dayOfWeek; }
     public void setTime(String time) { this.time = time; }
@@ -47,6 +56,10 @@ public class YogaCourse implements Serializable {
     public void setId(int id) {
         this.id = id;
     }
+    public void setFirebaseKey(String firebaseKey) {
+        this.firebaseKey = firebaseKey;
+    }
+
 
     @Override
     public String toString() {

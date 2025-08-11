@@ -75,7 +75,6 @@ public class YogaCourseFunctions extends AppCompatActivity {
         typeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerType.setAdapter(typeAdapter);
     }
-
     private int getSpinnerIndex(Spinner spinner, String value) {
         if (value == null) return 0;
         for (int i = 0; i < spinner.getCount(); i++) {
@@ -85,7 +84,6 @@ public class YogaCourseFunctions extends AppCompatActivity {
         }
         return 0;
     }
-
     public void onClickAddCourse(View view) {
         try {
             String dayOfWeek = spinnerDay.getSelectedItem().toString();
@@ -113,26 +111,41 @@ public class YogaCourseFunctions extends AppCompatActivity {
             FireBaseHelper firebaseHelper = new FireBaseHelper(this); // create instance
 
             if (editingCourseId == -1) {
-                // Insert new course in local SQLite
+                // New course
                 long newId = dbHelper.insertCourse(course);
                 course.setId((int) newId);
 
+                // Generate new Firebase key and save it locally
+                String newFirebaseKey = firebaseHelper.getCoursesRef().push().getKey(); // Add this method or make coursesRef accessible
+                course.setFirebaseKey(newFirebaseKey);
+                dbHelper.updateFirebaseKey(course.getId(), newFirebaseKey);
+
                 Toast.makeText(this, "Course added locally", Toast.LENGTH_SHORT).show();
 
-                // Upload all courses to Firebase if network available
                 if (firebaseHelper.isNetworkAvailable()) {
                     firebaseHelper.uploadAllCourses();
                 } else {
                     Toast.makeText(this, "No internet connection. Course saved locally.", Toast.LENGTH_SHORT).show();
                 }
             } else {
-                // Update existing course in local SQLite
+                // Update existing course
                 course.setId(editingCourseId);
+
+                // Retrieve existing firebaseKey from local DB for this course (implement getFirebaseKeyById)
+                String existingFirebaseKey = dbHelper.getFirebaseKeyById(editingCourseId);
+                if (existingFirebaseKey != null) {
+                    course.setFirebaseKey(existingFirebaseKey);
+                } else {
+                    // Just in case, generate one
+                    String newFirebaseKey = firebaseHelper.getCoursesRef().push().getKey();
+                    course.setFirebaseKey(newFirebaseKey);
+                    dbHelper.updateFirebaseKey(editingCourseId, newFirebaseKey);
+                }
+
                 dbHelper.updateCourse(editingCourseId, course);
 
                 Toast.makeText(this, "Course updated locally", Toast.LENGTH_SHORT).show();
 
-                // Upload all courses to Firebase if network available
                 if (firebaseHelper.isNetworkAvailable()) {
                     firebaseHelper.uploadAllCourses();
                 } else {
@@ -151,13 +164,9 @@ public class YogaCourseFunctions extends AppCompatActivity {
         }
     }
 
-    private boolean isNetworkAvailable() {
-        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        if (connectivityManager == null) return false;
-        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
-    }
+    public void onClickDelete(View view){
 
+    }
     public void onClickBack(View view) {
         onBackPressed();
     }

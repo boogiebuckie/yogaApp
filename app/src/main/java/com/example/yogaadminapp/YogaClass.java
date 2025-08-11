@@ -3,12 +3,12 @@ package com.example.yogaadminapp;
 import java.io.Serializable;
 
 public class YogaClass implements Serializable {
-    private int id;             // Primary Key
-    private int courseId;       // Foreign Key from YogaCourse
-    private String dateTime;    // In ISO format e.g., "2025-08-07 14:30"
+    private int id;
+    private int courseId;
+    private String dateTime;
     private String teacher;
-    private String comment;
-    private String dayOfWeek;   // For search results display
+    private String comment;             //nam phan
+    private String dayOfWeek;
 
     public YogaClass() {}
 
