@@ -148,7 +148,6 @@ public class YogaCourseList extends AppCompatActivity {
                 i.putExtra("course_id", course.getId());
                 context.startActivity(i);
             });
-
             return convertView;
         }
     }

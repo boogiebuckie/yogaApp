@@ -8,27 +8,30 @@
 
     <!-- Date and Time -->
     <TextView
-        android:id="@+id/tv_class_date_time"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="2025-08-07 14:30"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:paddingBottom="4dp" />
-
-    <!-- Teacher -->
-    <TextView
         android:id="@+id/tv_class_teacher"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Teacher: Jenny"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:paddingBottom="18dp" />
+
+    <TextView
+        android:id="@+id/tv_class_date_time"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="2025-08-07 14:30"
+        android:textSize="16sp"
+        android:textStyle="bold"
         android:paddingBottom="4dp" />
+
 
     <!-- Comment -->
     <TextView
         android:id="@+id/tv_class_comment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:textSize="16sp"
         android:text="Comment: Bring your own mat"
         android:textColor="#666666" />
 

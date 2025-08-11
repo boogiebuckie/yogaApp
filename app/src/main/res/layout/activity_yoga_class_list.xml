@@ -13,10 +13,10 @@
 
     <Button
         android:id="@+id/courseback_btn"
-        android:layout_width="74dp"
-        android:layout_height="56dp"
-        android:layout_marginStart="18dp"
-        android:layout_marginTop="16dp"
+        android:layout_width="49dp"
+        android:layout_height="60dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="28dp"
         android:background="@android:color/white"
         android:elevation="8dp"
         android:onClick="onClickBack"
@@ -28,8 +28,8 @@
 
     <ListView
         android:id="@+id/classListView"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_width="382dp"
+        android:layout_height="528dp"
         android:layout_marginStart="13dp"
         android:layout_marginTop="91dp"
         android:layout_marginEnd="13dp"
@@ -56,8 +56,8 @@
 
     <Button
         android:id="@+id/fetch_class_btn"
-        android:layout_width="107dp"
-        android:layout_height="46dp"
+        android:layout_width="116dp"
+        android:layout_height="53dp"
         android:layout_marginStart="24dp"
         android:layout_marginBottom="28dp"
         android:text="refesh"
