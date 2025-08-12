@@ -80,7 +80,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    // --- Modified insertCourse ---
+    // --- Course CRUD ---
     public long insertCourse(YogaCourse course) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -95,7 +95,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return db.insert(TABLE_COURSE, null, values);
     }
 
-    // --- Modified updateCourse ---
     public int updateCourse(int id, YogaCourse course) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -108,6 +107,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COURSE_DESCRIPTION, course.getDescription());
         values.put(COURSE_FIREBASE_KEY, course.getFirebaseKey()); // new
         return db.update(TABLE_COURSE, values, COURSE_ID + " = ?", new String[]{String.valueOf(id)});
+    }
+    public int deleteCourse(int id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        // Delete classes linked to this course
+        db.delete(TABLE_CLASS, CLASS_COURSE_ID + " = ?", new String[]{String.valueOf(id)});
+        // Delete course
+        return db.delete(TABLE_COURSE, COURSE_ID + " = ?", new String[]{String.valueOf(id)});
     }
 
     // --- Add method to update Firebase key separately ---
@@ -131,7 +137,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return db.update(TABLE_COURSE, values, COURSE_ID + " = ?", new String[]{String.valueOf(courseId)});
     }
 
-    // --- Modified getAllCourses to load firebase key ---
+    // --- getAllCourses to load firebase key ---
     public ArrayList<YogaCourse> getAllCourses() {
         ArrayList<YogaCourse> courses = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
@@ -164,7 +170,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     // --- Class CRUD ---
-
     public long insertClass(YogaClass yogaClass) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -175,7 +180,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(CLASS_FIREBASE_KEY, yogaClass.getFirebaseKey());  // new
         return db.insert(TABLE_CLASS, null, values);
     }
-
     public int updateClass(int id, YogaClass yogaClass) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -186,36 +190,26 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(CLASS_FIREBASE_KEY, yogaClass.getFirebaseKey());  // new
         return db.update(TABLE_CLASS, values, CLASS_ID + " = ?", new String[]{String.valueOf(id)});
     }
-
     public int deleteClass(int id) {
         SQLiteDatabase db = this.getWritableDatabase();
         return db.delete(TABLE_CLASS, CLASS_ID + " = ?", new String[]{String.valueOf(id)});
     }
 
-    public ArrayList<YogaClass> getAllClasses() {
-        ArrayList<YogaClass> classes = new ArrayList<>();
+    // --------function retrieve Id--------//
+    public String getDayOfWeekByCourseId(int courseId) {
+        String dayOfWeek = null;
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.query(TABLE_CLASS, null, null, null, null, null, null);
+
+        String query = "SELECT " + COURSE_DAY + " FROM " + TABLE_COURSE + " WHERE " + COURSE_ID + " = ?";
+        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(courseId)});
 
         if (cursor.moveToFirst()) {
-            do {
-                YogaClass yogaClass = new YogaClass();
-                yogaClass.setId(cursor.getInt(cursor.getColumnIndexOrThrow(CLASS_ID)));
-                yogaClass.setDateTime(cursor.getString(cursor.getColumnIndexOrThrow(CLASS_DATETIME)));
-                yogaClass.setTeacher(cursor.getString(cursor.getColumnIndexOrThrow(CLASS_TEACHER)));
-                yogaClass.setComment(cursor.getString(cursor.getColumnIndexOrThrow(CLASS_COMMENT)));
-                yogaClass.setCourseId(cursor.getInt(cursor.getColumnIndexOrThrow(CLASS_COURSE_ID)));
-                int firebaseKeyIndex = cursor.getColumnIndex(CLASS_FIREBASE_KEY);
-                if (firebaseKeyIndex != -1) {
-                    yogaClass.setFirebaseKey(cursor.getString(firebaseKeyIndex));
-                }
-                classes.add(yogaClass);
-            } while (cursor.moveToNext());
+            dayOfWeek = cursor.getString(cursor.getColumnIndexOrThrow(COURSE_DAY));
         }
         cursor.close();
-        return classes;
-    }
 
+        return dayOfWeek;
+    }
     public ArrayList<YogaClass> getClassesByCourseId(int courseIdFilter) {
         ArrayList<YogaClass> classes = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
@@ -244,7 +238,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         cursor.close();
         return classes;
     }
-
     public List<Integer> getAllCourseIds() {
         List<Integer> ids = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
@@ -258,115 +251,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return ids;
     }
 
-    public String getClassFirebaseKeyById(int classId) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.query(TABLE_CLASS, new String[]{CLASS_FIREBASE_KEY}, CLASS_ID + " = ?", new String[]{String.valueOf(classId)}, null, null, null);
-        String firebaseKey = null;
-        if (cursor.moveToFirst()) {
-            int index = cursor.getColumnIndex(CLASS_FIREBASE_KEY);
-            if (index != -1) {
-                firebaseKey = cursor.getString(index);
-            }
-        }
-        cursor.close();
-        return firebaseKey;
-    }
-
-    public int updateClassFirebaseKey(int classId, String firebaseKey) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(CLASS_FIREBASE_KEY, firebaseKey);
-        return db.update(TABLE_CLASS, values, CLASS_ID + " = ?", new String[]{String.valueOf(classId)});
-    }
 
     // Search methods for classes
-    public ArrayList<YogaClass> searchClassesByTeacher(String teacherName) {
-        ArrayList<YogaClass> classes = new ArrayList<>();
-        SQLiteDatabase db = this.getReadableDatabase();
-
-        String query = "SELECT c.*, co." + COURSE_DAY + " FROM " + TABLE_CLASS + " c " +
-                      "JOIN " + TABLE_COURSE + " co ON c." + CLASS_COURSE_ID + " = co." + COURSE_ID + " " +
-                      "WHERE c." + CLASS_TEACHER + " LIKE ? " +
-                      "ORDER BY c." + CLASS_DATETIME;
-
-        Cursor cursor = db.rawQuery(query, new String[]{"%" + teacherName + "%"});
-
-        if (cursor.moveToFirst()) {
-            do {
-                int id = cursor.getInt(cursor.getColumnIndexOrThrow(CLASS_ID));
-                String dateTime = cursor.getString(cursor.getColumnIndexOrThrow(CLASS_DATETIME));
-                String teacher = cursor.getString(cursor.getColumnIndexOrThrow(CLASS_TEACHER));
-                String comment = cursor.getString(cursor.getColumnIndexOrThrow(CLASS_COMMENT));
-                int courseId = cursor.getInt(cursor.getColumnIndexOrThrow(CLASS_COURSE_ID));
-                String dayOfWeek = cursor.getString(cursor.getColumnIndexOrThrow(COURSE_DAY));
-
-                YogaClass yogaClass = new YogaClass(id, courseId, dateTime, teacher, comment);
-                yogaClass.setDayOfWeek(dayOfWeek); // Store day for display
-                classes.add(yogaClass);
-            } while (cursor.moveToNext());
-        }
-        cursor.close();
-        return classes;
-    }
-
-    public ArrayList<YogaClass> searchClassesByDate(String date) {
-        ArrayList<YogaClass> classes = new ArrayList<>();
-        SQLiteDatabase db = this.getReadableDatabase();
-
-        String query = "SELECT c.*, co." + COURSE_DAY + " FROM " + TABLE_CLASS + " c " +
-                      "JOIN " + TABLE_COURSE + " co ON c." + CLASS_COURSE_ID + " = co." + COURSE_ID + " " +
-                      "WHERE c." + CLASS_DATETIME + " LIKE ? " +
-                      "ORDER BY c." + CLASS_DATETIME;
-
-        Cursor cursor = db.rawQuery(query, new String[]{date + "%"});
-
-        if (cursor.moveToFirst()) {
-            do {
-                int id = cursor.getInt(cursor.getColumnIndexOrThrow(CLASS_ID));
-                String dateTime = cursor.getString(cursor.getColumnIndexOrThrow(CLASS_DATETIME));
-                String teacher = cursor.getString(cursor.getColumnIndexOrThrow(CLASS_TEACHER));
-                String comment = cursor.getString(cursor.getColumnIndexOrThrow(CLASS_COMMENT));
-                int courseId = cursor.getInt(cursor.getColumnIndexOrThrow(CLASS_COURSE_ID));
-                String dayOfWeek = cursor.getString(cursor.getColumnIndexOrThrow(COURSE_DAY));
-
-                YogaClass yogaClass = new YogaClass(id, courseId, dateTime, teacher, comment);
-                yogaClass.setDayOfWeek(dayOfWeek);
-                classes.add(yogaClass);
-            } while (cursor.moveToNext());
-        }
-        cursor.close();
-        return classes;
-    }
-
-    public ArrayList<YogaClass> searchClassesByDayOfWeek(String dayOfWeek) {
-        ArrayList<YogaClass> classes = new ArrayList<>();
-        SQLiteDatabase db = this.getReadableDatabase();
-
-        String query = "SELECT c.*, co." + COURSE_DAY + " FROM " + TABLE_CLASS + " c " +
-                      "JOIN " + TABLE_COURSE + " co ON c." + CLASS_COURSE_ID + " = co." + COURSE_ID + " " +
-                      "WHERE co." + COURSE_DAY + " = ? " +
-                      "ORDER BY c." + CLASS_DATETIME;
-
-        Cursor cursor = db.rawQuery(query, new String[]{dayOfWeek});
-
-        if (cursor.moveToFirst()) {
-            do {
-                int id = cursor.getInt(cursor.getColumnIndexOrThrow(CLASS_ID));
-                String dateTime = cursor.getString(cursor.getColumnIndexOrThrow(CLASS_DATETIME));
-                String teacher = cursor.getString(cursor.getColumnIndexOrThrow(CLASS_TEACHER));
-                String comment = cursor.getString(cursor.getColumnIndexOrThrow(CLASS_COMMENT));
-                int courseId = cursor.getInt(cursor.getColumnIndexOrThrow(CLASS_COURSE_ID));
-                String day = cursor.getString(cursor.getColumnIndexOrThrow(COURSE_DAY));
-
-                YogaClass yogaClass = new YogaClass(id, courseId, dateTime, teacher, comment);
-                yogaClass.setDayOfWeek(day);
-                classes.add(yogaClass);
-            } while (cursor.moveToNext());
-        }
-        cursor.close();
-        return classes;
-    }
-
     public ArrayList<YogaClass> searchClassesAdvanced(String teacherName, String date, String dayOfWeek) {
         ArrayList<YogaClass> classes = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
@@ -422,11 +308,5 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.delete(TABLE_COURSE, null, null);
         db.close();
     }
-    public int deleteCourse(int id) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        // Delete classes linked to this course
-        db.delete(TABLE_CLASS, CLASS_COURSE_ID + " = ?", new String[]{String.valueOf(id)});
-        // Delete course
-        return db.delete(TABLE_COURSE, COURSE_ID + " = ?", new String[]{String.valueOf(id)});
-    }
+
 }
