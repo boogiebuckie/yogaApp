@@ -17,6 +17,7 @@ import java.util.ArrayList;
 public class YogaClassFunction extends AppCompatActivity {
 
     private DatabaseHelper classDbHelper;
+    private FireBaseHelper firebaseHelper;
     private int editingClassId = -1;
 
     private Spinner spinnerCourse;
@@ -33,7 +34,7 @@ public class YogaClassFunction extends AppCompatActivity {
         setContentView(R.layout.activity_yoga_class_function);
 
         classDbHelper = new DatabaseHelper(this);
-
+        firebaseHelper = new FireBaseHelper(this);
         spinnerCourse = findViewById(R.id.spinner_course);
         datePicker = findViewById(R.id.date_picker);
         editTeacher = findViewById(R.id.edit_teacher);
@@ -109,19 +110,29 @@ public class YogaClassFunction extends AppCompatActivity {
                 return;
             }
 
-            // Convert date to ISO format
             String dateTime = String.format(Locale.getDefault(), "%04d-%02d-%02d 00:00", year, month + 1, day);
 
             YogaClass yogaClass = new YogaClass(editingClassId, courseId, dateTime, teacher, comment);
 
+            long resultId;
             if (editingClassId == -1) {
-                long newClassId = classDbHelper.insertClass(yogaClass);
-                System.out.println("YogaClassFunction: Added new class with ID " + newClassId + " for course " + courseId);
+                // Insert locally
+                resultId = classDbHelper.insertClass(yogaClass);
+                yogaClass.setId((int) resultId);
                 Toast.makeText(this, "Class added", Toast.LENGTH_SHORT).show();
             } else {
+                // Update locally
                 classDbHelper.updateClass(editingClassId, yogaClass);
-                System.out.println("YogaClassFunction: Updated class " + editingClassId + " for course " + courseId);
+                resultId = editingClassId;
                 Toast.makeText(this, "Class updated", Toast.LENGTH_SHORT).show();
+            }
+
+            // Sync to Firebase
+            String courseFirebaseKey = classDbHelper.getFirebaseKeyById(courseId);
+            if (courseFirebaseKey != null && !courseFirebaseKey.isEmpty()) {
+                firebaseHelper.uploadClassForCourse(courseFirebaseKey, yogaClass);
+            } else {
+                Toast.makeText(this, "Course Firebase key missing, unable to sync class", Toast.LENGTH_SHORT).show();
             }
 
             Intent intent = new Intent(this, YogaClassList.class);

@@ -1,4 +1,3 @@
-
 package com.example.yogaadminapp;
 
 import android.content.Context;
@@ -14,10 +13,14 @@ import java.util.ArrayList;
 public class YogaClassList extends AppCompatActivity {
 
     private DatabaseHelper dbHelper;
+    private FireBaseHelper firebaseHelper;
+
     private ArrayList<YogaClass> classList;
     private YogaClassAdapter classAdapter;
     private ListView classListView;
-    private int courseId; // the course we are viewing classes for
+    private int courseId;
+
+    private Button btnAddClass, btnRefresh, btnBack;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,68 +32,56 @@ public class YogaClassList extends AppCompatActivity {
         setContentView(R.layout.activity_yoga_class_list);
 
         dbHelper = new DatabaseHelper(this);
-        classListView = findViewById(R.id.classListView);
+        firebaseHelper = new FireBaseHelper(this);
 
-        // Get course ID from intent
+        classListView = findViewById(R.id.classListView);
+        btnAddClass = findViewById(R.id.buttonAddClass);
+        btnRefresh = findViewById(R.id.fetch_class_btn);
+        btnBack = findViewById(R.id.courseback_btn);
+
         courseId = getIntent().getIntExtra("course_id", -1);
 
-        // Debug: Log the course ID
-        System.out.println("YogaClassList: Received course_id = " + courseId);
-
-        // Load classes for this course
-        classList = dbHelper.getClassesByCourseId(courseId);
-
-        // Debug: Log the number of classes found
-        System.out.println("YogaClassList: Found " + classList.size() + " classes for course " + courseId);
-
-        // Add dummy data if yoga list is empty
-        if (classList.isEmpty()) {
-            System.out.println("YogaClassList: Adding dummy data for course " + courseId);
-            // Add multiple dummy classes for testing
-            classList.add(new YogaClass(0, courseId, "2025-01-15 10:00", "Sarah Johnson", "Bring your own mat"));
-            classList.add(new YogaClass(0, courseId, "2025-01-17 14:30", "Mike Chen", "All levels welcome"));
-            classList.add(new YogaClass(0, courseId, "2025-01-20 09:00", "Emma Davis", "Focus on breathing techniques"));
-            classList.add(new YogaClass(0, courseId, "2025-01-22 16:00", "David Wilson", "Advanced poses included"));
-            classList.add(new YogaClass(0, courseId, "2025-01-25 11:30", "Lisa Brown", "Relaxing session"));
-            System.out.println("YogaClassList: Added " + classList.size() + " dummy classes");
-        } else {
-            System.out.println("YogaClassList: Found existing classes, not adding dummy data");
-        }
+        loadClassesFromLocal();
 
         classAdapter = new YogaClassAdapter(this, classList);
         classListView.setAdapter(classAdapter);
-        System.out.println("YogaClassList: Adapter created with " + classList.size() + " items");
+
+        // Button click listeners
+        btnAddClass.setOnClickListener(v -> {
+            Intent intent = new Intent(this, YogaClassFunction.class);
+            intent.putExtra("course_id", courseId);
+            startActivity(intent);
+        });
+
+        btnRefresh.setOnClickListener(v -> syncFromFirebase());
+
+        btnBack.setOnClickListener(v -> onBackPressed());
     }
 
-    public void onClickAddClass(View v) {
-        Intent i = new Intent(this, YogaClassFunction.class);
-        i.putExtra("course_id", courseId); // pass course ID so new class links correctly
-        startActivity(i);
+    private void loadClassesFromLocal() {
+        classList = dbHelper.getClassesByCourseId(courseId);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        classList.clear();
-        classList.addAll(dbHelper.getClassesByCourseId(courseId));
-
-        System.out.println("YogaClassList onResume: Found " + classList.size() + " classes for course " + courseId);
-
-        // Add dummy data again if list is empty (in case user deleted all classes)
-        if (classList.isEmpty()) {
-            System.out.println("YogaClassList onResume: Adding dummy data for course " + courseId);
-            classList.add(new YogaClass(0, courseId, "2025-01-15 10:00", "Sarah Johnson", "Bring your own mat"));
-            classList.add(new YogaClass(0, courseId, "2025-01-17 14:30", "Mike Chen", "All levels welcome"));
-            classList.add(new YogaClass(0, courseId, "2025-01-20 09:00", "Emma Davis", "Focus on breathing techniques"));
-            classList.add(new YogaClass(0, courseId, "2025-01-22 16:00", "David Wilson", "Advanced poses included"));
-            classList.add(new YogaClass(0, courseId, "2025-01-25 11:30", "Lisa Brown", "Relaxing session"));
-        }
-
+        loadClassesFromLocal();
+        classAdapter.clear();
+        classAdapter.addAll(classList);
         classAdapter.notifyDataSetChanged();
-        System.out.println("YogaClassList onResume: Updated adapter with " + classList.size() + " items");
     }
 
-    // Custom adapter
+    private void syncFromFirebase() {
+        Toast.makeText(this, "Syncing from Firebase...", Toast.LENGTH_SHORT).show();
+        firebaseHelper.fetchCoursesFromFirebase(() -> runOnUiThread(() -> {
+            loadClassesFromLocal();
+            classAdapter.clear();
+            classAdapter.addAll(classList);
+            classAdapter.notifyDataSetChanged();
+            Toast.makeText(this, "Sync complete", Toast.LENGTH_SHORT).show();
+        }));
+    }
+
     public class YogaClassAdapter extends ArrayAdapter<YogaClass> {
 
         private Context context;
@@ -111,7 +102,6 @@ public class YogaClassList extends AppCompatActivity {
                         .inflate(R.layout.yoga_class_item, parent, false);
             }
 
-            // Bind your views
             TextView tvDateTime = convertView.findViewById(R.id.tv_class_date_time);
             TextView tvTeacher = convertView.findViewById(R.id.tv_class_teacher);
             TextView tvComment = convertView.findViewById(R.id.tv_class_comment);
@@ -123,7 +113,6 @@ public class YogaClassList extends AppCompatActivity {
             ImageButton btnEdit = convertView.findViewById(R.id.btn_edit_class);
             ImageButton btnDelete = convertView.findViewById(R.id.btn_delete_class);
 
-            // Edit
             btnEdit.setOnClickListener(v -> {
                 Intent intent = new Intent(context, YogaClassFunction.class);
                 intent.putExtra("class_id", yogaClass.getId());
@@ -134,20 +123,33 @@ public class YogaClassList extends AppCompatActivity {
                 context.startActivity(intent);
             });
 
-            // Delete
             btnDelete.setOnClickListener(v -> {
-                dbHelper.deleteClass(yogaClass.getId());
-                classList.remove(position);
-                notifyDataSetChanged();
-                Toast.makeText(context, "Deleted class on " + yogaClass.getDateTime(), Toast.LENGTH_SHORT).show();
+                int result = dbHelper.deleteClass(yogaClass.getId()); // Use yogaClass.getId() directly for deletion
+                boolean deletedLocally = (result > 0);
+                if (deletedLocally) {
+                    String courseFirebaseKey = dbHelper.getFirebaseKeyById(yogaClass.getCourseId());
+                    if (courseFirebaseKey != null && !courseFirebaseKey.isEmpty()) {
+                        firebaseHelper.getCoursesRef()
+                                .child(courseFirebaseKey)
+                                .child("classes")
+                                .child(String.valueOf(yogaClass.getId()))
+                                .removeValue()
+                                .addOnSuccessListener(aVoid ->
+                                        Toast.makeText(context, "Class deleted from Firebase", Toast.LENGTH_SHORT).show()
+                                )
+                                .addOnFailureListener(e ->
+                                        Toast.makeText(context, "Failed to delete class on Firebase", Toast.LENGTH_SHORT).show()
+                                );
+                    }
+                    classList.remove(position);
+                    notifyDataSetChanged();
+                    Toast.makeText(context, "Deleted class on " + yogaClass.getDateTime(), Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(context, "Failed to delete class locally", Toast.LENGTH_SHORT).show();
+                }
             });
 
             return convertView;
         }
-    }
-
-    public void onClickBack(View view) {
-        // Go back to the previous activity in the stack
-        onBackPressed();
     }
 }

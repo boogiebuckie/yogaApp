@@ -12,7 +12,7 @@ import java.util.List;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "YogaApp.db";
-    private static final int DATABASE_VERSION = 2; // Increase version for upgrade
+    private static final int DATABASE_VERSION = 3; // Increase version for upgrade
 
     // YogaCourse table and columns
     private static final String TABLE_COURSE = "yoga_courses";
@@ -35,7 +35,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String CLASS_TEACHER = "teacher";
     private static final String CLASS_COMMENT = "comment";
     private static final String CLASS_COURSE_ID = "course_id";
-
+    private static final String CLASS_FIREBASE_KEY = "firebase_key";
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
@@ -60,6 +60,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 CLASS_TEACHER + " TEXT NOT NULL, " +
                 CLASS_COMMENT + " TEXT, " +
                 CLASS_COURSE_ID + " INTEGER NOT NULL, " +
+                CLASS_FIREBASE_KEY + " TEXT, " +  // new firebase key column
                 "FOREIGN KEY (" + CLASS_COURSE_ID + ") REFERENCES " + TABLE_COURSE + "(" + COURSE_ID + ")" +
                 ");";
 
@@ -74,7 +75,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             // Add firebase_key column without losing data
             db.execSQL("ALTER TABLE " + TABLE_COURSE + " ADD COLUMN " + COURSE_FIREBASE_KEY + " TEXT;");
         }
-        // Add further upgrades if needed
+        if (oldVersion < 3) {
+            db.execSQL("ALTER TABLE " + TABLE_CLASS + " ADD COLUMN " + CLASS_FIREBASE_KEY + " TEXT;");
+        }
     }
 
     // --- Modified insertCourse ---
@@ -169,6 +172,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(CLASS_TEACHER, yogaClass.getTeacher());
         values.put(CLASS_COMMENT, yogaClass.getComment());
         values.put(CLASS_COURSE_ID, yogaClass.getCourseId());
+        values.put(CLASS_FIREBASE_KEY, yogaClass.getFirebaseKey());  // new
         return db.insert(TABLE_CLASS, null, values);
     }
 
@@ -179,6 +183,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(CLASS_TEACHER, yogaClass.getTeacher());
         values.put(CLASS_COMMENT, yogaClass.getComment());
         values.put(CLASS_COURSE_ID, yogaClass.getCourseId());
+        values.put(CLASS_FIREBASE_KEY, yogaClass.getFirebaseKey());  // new
         return db.update(TABLE_CLASS, values, CLASS_ID + " = ?", new String[]{String.valueOf(id)});
     }
 
@@ -194,13 +199,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         if (cursor.moveToFirst()) {
             do {
-                int id = cursor.getInt(cursor.getColumnIndexOrThrow(CLASS_ID));
-                String dateTime = cursor.getString(cursor.getColumnIndexOrThrow(CLASS_DATETIME));
-                String teacher = cursor.getString(cursor.getColumnIndexOrThrow(CLASS_TEACHER));
-                String comment = cursor.getString(cursor.getColumnIndexOrThrow(CLASS_COMMENT));
-                int courseId = cursor.getInt(cursor.getColumnIndexOrThrow(CLASS_COURSE_ID));
-
-                YogaClass yogaClass = new YogaClass(id, courseId, dateTime, teacher, comment);
+                YogaClass yogaClass = new YogaClass();
+                yogaClass.setId(cursor.getInt(cursor.getColumnIndexOrThrow(CLASS_ID)));
+                yogaClass.setDateTime(cursor.getString(cursor.getColumnIndexOrThrow(CLASS_DATETIME)));
+                yogaClass.setTeacher(cursor.getString(cursor.getColumnIndexOrThrow(CLASS_TEACHER)));
+                yogaClass.setComment(cursor.getString(cursor.getColumnIndexOrThrow(CLASS_COMMENT)));
+                yogaClass.setCourseId(cursor.getInt(cursor.getColumnIndexOrThrow(CLASS_COURSE_ID)));
+                int firebaseKeyIndex = cursor.getColumnIndex(CLASS_FIREBASE_KEY);
+                if (firebaseKeyIndex != -1) {
+                    yogaClass.setFirebaseKey(cursor.getString(firebaseKeyIndex));
+                }
                 classes.add(yogaClass);
             } while (cursor.moveToNext());
         }
@@ -248,6 +256,27 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         cursor.close();
         return ids;
+    }
+
+    public String getClassFirebaseKeyById(int classId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_CLASS, new String[]{CLASS_FIREBASE_KEY}, CLASS_ID + " = ?", new String[]{String.valueOf(classId)}, null, null, null);
+        String firebaseKey = null;
+        if (cursor.moveToFirst()) {
+            int index = cursor.getColumnIndex(CLASS_FIREBASE_KEY);
+            if (index != -1) {
+                firebaseKey = cursor.getString(index);
+            }
+        }
+        cursor.close();
+        return firebaseKey;
+    }
+
+    public int updateClassFirebaseKey(int classId, String firebaseKey) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(CLASS_FIREBASE_KEY, firebaseKey);
+        return db.update(TABLE_CLASS, values, CLASS_ID + " = ?", new String[]{String.valueOf(classId)});
     }
 
     // Search methods for classes

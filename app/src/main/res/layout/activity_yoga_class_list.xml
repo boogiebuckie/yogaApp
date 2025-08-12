@@ -19,7 +19,6 @@
         android:layout_marginTop="28dp"
         android:background="@android:color/white"
         android:elevation="8dp"
-        android:onClick="onClickBack"
         android:text="&lt;"
         android:textColor="@color/black"
         android:textSize="32sp"
@@ -48,7 +47,6 @@
         android:layout_marginEnd="32dp"
         android:layout_marginBottom="28dp"
         android:background="@color/black"
-        android:onClick="onClickAddClass"
         android:text="Add Class"
         android:textColor="@android:color/white"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -60,7 +58,7 @@
         android:layout_height="53dp"
         android:layout_marginStart="24dp"
         android:layout_marginBottom="28dp"
-        android:text="refesh"
+        android:text="Refesh"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 

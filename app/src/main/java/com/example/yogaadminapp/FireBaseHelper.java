@@ -3,7 +3,6 @@ package com.example.yogaadminapp;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -28,9 +27,11 @@ public class FireBaseHelper {
         this.localDb = new DatabaseHelper(context);
         this.coursesRef = FirebaseDatabase.getInstance().getReference("yoga_courses");
     }
+
     public DatabaseReference getCoursesRef() {
         return coursesRef;
     }
+
     // Check internet connection
     public boolean isNetworkAvailable() {
         ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -41,7 +42,7 @@ public class FireBaseHelper {
         return false;
     }
 
-    //////////Upload all courses + related classes to Firebase
+    ////////// Upload all courses + related classes to Firebase
     public void uploadAllCourses() {
         if (!isNetworkAvailable()) {
             Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show();
@@ -66,12 +67,12 @@ public class FireBaseHelper {
 
             DatabaseReference courseNode = coursesRef.child(courseKey);
             courseNode.setValue(course).addOnSuccessListener(aVoid -> {
-                // Upload related classes under the course node
+                // Upload related classes under the existing course key
                 List<YogaClass> classes = localDb.getClassesByCourseId(course.getId());
                 DatabaseReference classesNode = courseNode.child("classes");
                 if (classes != null && !classes.isEmpty()) {
                     for (YogaClass yc : classes) {
-                        // Use Firebase key or ID for classes (assuming ID is unique)
+                        // Use local DB ID or other unique identifier for class node
                         classesNode.child(String.valueOf(yc.getId())).setValue(yc);
                     }
                 }
@@ -82,10 +83,33 @@ public class FireBaseHelper {
         Toast.makeText(context, "Upload started", Toast.LENGTH_SHORT).show();
     }
 
-    ////////// Fetch all courses + classes from Firebase and sync to local DB0
+    // Upload a single class for an existing course (must have firebaseKey set)
+    public void uploadClassForCourse(String courseFirebaseKey, YogaClass yogaClass) {
+        if (!isNetworkAvailable()) {
+            Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (courseFirebaseKey == null || courseFirebaseKey.isEmpty()) {
+            Toast.makeText(context, "Course Firebase key missing", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        coursesRef.child(courseFirebaseKey)
+                .child("classes")
+                .child(String.valueOf(yogaClass.getId()))
+                .setValue(yogaClass)
+                .addOnSuccessListener(aVoid ->
+                        Toast.makeText(context, "Class uploaded successfully", Toast.LENGTH_SHORT).show()
+                )
+                .addOnFailureListener(e ->
+                        Toast.makeText(context, "Failed to upload class: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                );
+    }
+
+    ////////// Fetch all courses + classes from Firebase and sync to local DB
     public interface FetchCallback {
         void onComplete();
     }
+
     public void fetchCoursesFromFirebase(FetchCallback callback) {
         if (!isNetworkAvailable()) {
             Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show();
@@ -132,7 +156,7 @@ public class FireBaseHelper {
         });
     }
 
-    //////////delete from firebase
+    ////////// Delete from Firebase
     public void deleteCourseOnFirebase(String firebaseKey, DeleteCallback callback) {
         if (!isNetworkAvailable()) {
             if (callback != null) callback.onComplete(false);
@@ -147,6 +171,7 @@ public class FireBaseHelper {
                     if (callback != null) callback.onComplete(false);
                 });
     }
+
     public interface DeleteCallback {
         void onComplete(boolean success);
     }

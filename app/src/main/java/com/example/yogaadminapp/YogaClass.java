@@ -9,7 +9,7 @@ public class YogaClass implements Serializable {
     private String teacher;
     private String comment;             //nam phan
     private String dayOfWeek;
-
+    private String firebaseKey;
     public YogaClass() {}
 
     public YogaClass(int id, int courseId, String dateTime, String teacher, String comment) {
@@ -25,6 +25,13 @@ public class YogaClass implements Serializable {
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
+    // getters and setters for firebaseKey
+    public String getFirebaseKey() {
+        return firebaseKey;
+    }
+    public void setFirebaseKey(String firebaseKey) {
+        this.firebaseKey = firebaseKey;
+    }
     public int getCourseId() { return courseId; }
     public void setCourseId(int courseId) { this.courseId = courseId; }
 
